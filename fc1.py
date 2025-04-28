@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense
 
-# Configure the Streamlit page
+
 st.set_page_config(page_title="Tech Stock Forecast Dashboard", layout="wide")
 
-# Sidebar: User configuration
+
 st.sidebar.header("Configuration")
 stock_symbol = st.sidebar.text_input("Stock Ticker", value="AAPL")
 forecast_days = st.sidebar.slider("Forecast Horizon (days)", min_value=1, max_value=30, value=7)
@@ -20,14 +20,14 @@ train_years = st.sidebar.slider("Training Period (years)", min_value=1, max_valu
 alpha_api_key = st.sidebar.text_input("Alpha Vantage API Key", type="password")
 update_data = st.sidebar.button("Update Data & Retrain")
 
-st.title("📈 Real-Time Tech Stock Price Forecast")
+st.title(" Real-Time Tech Stock Price Forecast")
 st.markdown(f"**Stock:** {stock_symbol} &nbsp;&nbsp; **Forecast Horizon:** {forecast_days} day(s)")
 
 if not alpha_api_key:
     st.error("Please enter your Alpha Vantage API key in the sidebar.")
     st.stop()
 
-# 1. Data Ingestion using Alpha Vantage
+# Data Ingestion using Alpha Vantage
 end_date = datetime.now()
 start_date = end_date - timedelta(days=train_years * 365)
 
@@ -55,9 +55,9 @@ if df.empty:
 st.subheader("Historical Price")
 st.line_chart(df["Close"], height=250)
 
-# 2. Hybrid Model Training
+# Hybrid Model Training
 
-# 2.a ARIMA Model for baseline trend
+# ARIMA Model for baseline trend
 arima_train = df["Close"].values
 use_arima = True
 if len(arima_train) < max(30, 2 * forecast_days):
@@ -75,7 +75,7 @@ if use_arima:
 else:
     arima_res = None
 
-# 2.b Compute residuals for LSTM training
+# Compute residuals for LSTM training
 if use_arima and arima_res is not None:
     # In-sample ARIMA predictions
     arima_fitted = arima_res.predict()
@@ -83,7 +83,7 @@ if use_arima and arima_res is not None:
 else:
     residuals = arima_train
 
-# 2.c Prepare LSTM training data from residuals
+#  Prepare LSTM training data from residuals
 window_size = 60  # lookback window
 if len(residuals) < window_size + 1:
     window_size = max(1, len(residuals) - 1)
@@ -98,7 +98,7 @@ for i in range(window_size, len(series_scaled)):
 X_train, y_train = np.array(X_train), np.array(y_train)
 X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 
-# 2.d LSTM Model Training (if sufficient data)
+#  LSTM Model Training (if sufficient data)
 lstm_model = None
 if X_train.shape[0] >= 1:
     lstm_model = Sequential()
@@ -107,7 +107,7 @@ if X_train.shape[0] >= 1:
     lstm_model.compile(optimizer='adam', loss='mean_squared_error')
     lstm_model.fit(X_train, y_train, epochs=5, batch_size=16, verbose=0)
 
-# 3. Forecasting
+#  Forecasting
 
 # ARIMA forecast for baseline
 last_close = df["Close"].iloc[-1]
@@ -136,7 +136,7 @@ if lstm_model:
 # Combine ARIMA and LSTM forecasts
 combined_forecast = arima_forecast + lstm_forecast
 
-# 4. Visualization: Forecast vs. Actual
+# Visualization: Forecast vs. Actual
 last_date = df.index[-1]
 forecast_dates = [last_date + timedelta(days=i + 1) for i in range(forecast_days)]
 forecast_df = pd.DataFrame({
